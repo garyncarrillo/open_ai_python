@@ -17,8 +17,12 @@ from django.contrib import admin
 from django.urls import path
 from . import views
 
+from pathlib import Path
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('open/', views.open_api),
+    path('load/', views.load),
+    path('recomendation/', views.open_recomendation),
+    path('bucket/', views.open_recomendation_bucket),
 ]
