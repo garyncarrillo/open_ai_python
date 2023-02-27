@@ -120,11 +120,12 @@ def print_recommendations_from_strings(
     query_string = strings[index_of_source_string]
     print("************************")
     print(query_string)
+    print("gggggggggggggggggggggggggggggggggggg")
     print(f"Source string: {query_string}")
     print("---------------------------")
     # print out its k nearest neighbors
     k_counter = 0
-    neighbors = ""
+    neighbors = query_string
     for i in indices_of_nearest_neighbors:
         # skip any strings that are identical matches to the starting string
         if query_string == strings[i]:
@@ -147,14 +148,14 @@ def print_recommendations_from_strings(
         
         neighbors = neighbors +space+ strings[i]
 
-    question = "When it comes to <b> starting the New Year strong and getting a jump on your 2019 goals</b>, what's YOUR single biggest challenge right now? considering the following answer"+neighbors
+    question = "Taking into account the aforementioned, give us a general conclusion about the following answers: "+neighbors
     print("******************* ", question)
     time.sleep(60)
-    completion = openai.Completion.create(engine="ada", prompt= question)
-    print(completion.choices[0].text)
-
+    completion = openai.Completion.create(engine="text-davinci-003", prompt= question)
     print("***************************************************")
-    print(neighbors)
+    print(completion)
+    print("/*/*/*/*/*/*/*/*/*/*/**/*/*/*/*/*/**/**/*/*/*/*/")
+    print(completion.choices[0].text)
 
     return indices_of_nearest_neighbors
 
