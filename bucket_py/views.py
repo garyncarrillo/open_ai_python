@@ -146,12 +146,12 @@ def print_recommendations_from_strings(
         if k_counter > 1:
            space = ", " 
         
-        neighbors = neighbors +space+ strings[i]
+        neighbors = neighbors +"\n "+ strings[i]
 
-    question = "Taking into account the aforementioned, give us a general conclusion about the following answers: "+neighbors
+    question = "When it comes to starting the new year strong and getting a jump on your 2019 goals, what's your single biggest challenge right now? \n"+neighbors+" \n give me a conclusion about the last aswers"
     print("******************* ", question)
     time.sleep(60)
-    completion = openai.Completion.create(engine="text-davinci-003", prompt= question)
+    completion = openai.Completion.create(engine="text-davinci-003", prompt= question,  max_tokens=150, temperature=0)
     print("***************************************************")
     print(completion)
     print("/*/*/*/*/*/*/*/*/*/*/**/*/*/*/*/*/**/**/*/*/*/*/")
@@ -161,7 +161,7 @@ def print_recommendations_from_strings(
 
 
 def open_recomendation_bucket(request):
-    openai.api_key = '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'
+    openai.api_key = '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'
     # openai.api_key = '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'
 
     url = str(os.getcwd())
