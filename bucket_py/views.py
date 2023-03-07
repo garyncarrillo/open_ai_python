@@ -96,17 +96,17 @@ def open_recomendation(request):
     print(tony_blair_articles)
     return JsonResponse({"engines": "engines"})
 
-
 def print_recommendations_from_strings(
     strings: list[str],
     index_of_source_string: int,
     k_nearest_neighbors: int = 1,
     model=EMBEDDING_MODEL,
+    embeddings=list
 ) -> list[int]:
     """Print out the k nearest neighbors of a given string."""
     # get embeddings for all strings
     # embeddings = [embedding_from_string(string, model=model) for string in strings]
-    embeddings = [get_embedding(string, engine=model) for string in strings]
+    # embeddings = [get_embedding(string, engine=model) for string in strings]
     # get the embedding of the source string
     query_embedding = embeddings[index_of_source_string]
     # get distances between the source embedding and other embeddings (function from embeddings_utils.py)
@@ -146,34 +146,60 @@ def print_recommendations_from_strings(
         if k_counter > 1:
            space = ", " 
         
-        neighbors = neighbors +"\n "+ strings[i]
+        neighbors = neighbors +"\n"+ strings[i]
 
-    question = "When it comes to starting the new year strong and getting a jump on your 2019 goals, what's your single biggest challenge right now? \n"+neighbors+" \n give me a conclusion about the last aswers"
-    print("******************* ", question)
-    time.sleep(60)
-    completion = openai.Completion.create(engine="text-davinci-003", prompt= question,  max_tokens=150, temperature=0)
-    print("***************************************************")
-    print(completion)
-    print("/*/*/*/*/*/*/*/*/*/*/**/*/*/*/*/*/**/**/*/*/*/*/")
-    print(completion.choices[0].text)
-
-    return indices_of_nearest_neighbors
+    question = neighbors
+    return question
 
 
 def open_recomendation_bucket(request):
-    openai.api_key = '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'
+    
     # openai.api_key = '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'
 
     url = str(os.getcwd())
     df = pd.read_csv(url+"/entranamiento2.csv")
     print(df.head(5))
     article_descriptions = df["Description"].tolist()
-    
-    tony_blair_articles = print_recommendations_from_strings(
+    strings=article_descriptions
+    model  = EMBEDDING_MODEL
+    embeddings = [get_embedding(string, engine=model) for string in strings]
+    print(type(embeddings))
+    print("LLEGOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO ")
+    question = print_recommendations_from_strings(
          strings=article_descriptions,  # let's base similarity off of the article description
          index_of_source_string=0,  # let's look at articles similar to the first one about Tony Blair
-         k_nearest_neighbors=5,  # let's look at the 5 most similar articles
+         k_nearest_neighbors=2,  # let's look at the 5 most similar articles
+         embeddings=embeddings
+    )
+    # time.sleep(10)
+    question_2 = print_recommendations_from_strings(
+         strings=article_descriptions,  # let's base similarity off of the article description
+         index_of_source_string=2,  # let's look at articles similar to the first one about Tony Blair
+         k_nearest_neighbors=2,  # let's look at the 5 most similar articles
+         embeddings=embeddings
+    )
+    # time.sleep(10)
+    question_3 = print_recommendations_from_strings(
+         strings=article_descriptions,  # let's base similarity off of the article description
+         index_of_source_string=3,  # let's look at articles similar to the first one about Tony Blair
+         k_nearest_neighbors=2,  # let's look at the 5 most similar articles
+         embeddings=embeddings
     )
 
-    print(tony_blair_articles)
+    print("******************* ", question)
+    print("******************* ", question_2)
+    print("******************* ", question_3)
+    main_question = "When it comes to starting the new year strong and getting a jump on your 2019 goals, what's your single biggest challenge right now? \n"+question+question_2+question_3+" \n give me a conclusion about the last aswers"
+    time.sleep(10)
+    completion = openai.Completion.create(engine="text-davinci-003", prompt= main_question,  max_tokens=150, temperature=0)
+    print("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+    print("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+    print(main_question)
+    print("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+    print("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+    print(completion)
+    print("/*/*/*/*/*/*/*/*/*/*/**/*/*/*/*/*/**/**/*/*/*/*/")
+    print(completion.choices[0].text)
+
+    print(question)
     return JsonResponse({"engines": "engines"})
