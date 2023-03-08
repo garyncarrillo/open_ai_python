@@ -1,4 +1,5 @@
 import json
+import math
 from django.http import JsonResponse
 
 import pandas as pd
@@ -10,6 +11,12 @@ import tiktoken
 import numpy as np
 import pickle
 import time
+
+from rest_framework import viewsets
+from rest_framework import permissions
+from django.http import HttpResponse
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework.decorators import action
 
 # constants
 EMBEDDING_MODEL = "text-embedding-ada-002"
@@ -151,13 +158,26 @@ def print_recommendations_from_strings(
     question = neighbors
     return question
 
+def number_of_rows(df, percent=100):
+    rows_count = df[df.columns[0]].count()
+    total_rows = rows_count * (percent/100)
+    part_decimal, part_integer = math.modf(total_rows)
+    return part_integer
 
 def open_recomendation_bucket(request):
     
     # openai.api_key = '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'
 
     url = str(os.getcwd())
-    df = pd.read_csv(url+"/entranamiento2.csv")
+    
+    df2 = pd.read_csv(url+"/entranamiento2.csv")
+    total_rows = number_of_rows(df2, 100)
+    
+    # print(request.files["file"].filename)
+    print("TOTALLLLLLLLLLLLLLLLLLL")
+    print(total_rows)
+
+    df = pd.read_csv(url+"/entranamiento2.csv", nrows=total_rows)
     print(df.head(5))
     article_descriptions = df["Description"].tolist()
     strings=article_descriptions
@@ -203,3 +223,10 @@ def open_recomendation_bucket(request):
 
     print(question)
     return JsonResponse({"engines": "engines"})
+
+
+class UserViewSet(viewsets.ModelViewSet):
+    
+    @action(methods=['POST'], detail=False, url_path='create-bucket', url_name='create_bucket')
+    def create_bucket(self, request, pk=None):
+        return HttpResponse("Your response")

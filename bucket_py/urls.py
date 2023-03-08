@@ -19,10 +19,20 @@ from . import views
 
 from pathlib import Path
 
+from rest_framework import routers
+from django.urls import include, path
+
+router = routers.DefaultRouter()
+router.register(prefix='user', basename="user", viewset=views.UserViewSet)
+
+print("*************")
+print(router.urls)
+
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('open/', views.open_api),
-    path('load/', views.load),
-    path('recomendation/', views.open_recomendation),
+    # path('admin/', admin.site.urls),
+    # path('open/', views.open_api),
+    # path('load/', views.load),
+    # path('recomendation/', views.open_recomendation),
     path('bucket/', views.open_recomendation_bucket),
+    path('', include(router.urls)),
 ]
