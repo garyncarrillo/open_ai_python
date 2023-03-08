@@ -11,3 +11,4 @@ scikit-learn==1.21
 torch==1.13.1
 tiktoken=0.2.0
 scipy
+rest_framework

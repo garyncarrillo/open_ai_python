@@ -18,6 +18,7 @@ from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import action
 
+
 # constants
 EMBEDDING_MODEL = "text-embedding-ada-002"
 embedding_cache = {}
@@ -165,7 +166,7 @@ def number_of_rows(df, percent=100):
     return part_integer
 
 def open_recomendation_bucket(request):
-    
+    openai.api_key = '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'
     # openai.api_key = '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'
 
     url = str(os.getcwd())
@@ -229,4 +230,59 @@ class UserViewSet(viewsets.ModelViewSet):
     
     @action(methods=['POST'], detail=False, url_path='create-bucket', url_name='create_bucket')
     def create_bucket(self, request, pk=None):
-        return HttpResponse("Your response")
+        
+
+        print(request.data["query"])
+        print(request.data["file"].name)
+
+        df2 = pd.read_csv(request.data["file"].name)
+        total_rows = number_of_rows(df2, 100)    
+        print(df2.head(5))
+
+        print(total_rows)
+
+        df = pd.read_csv(request.data["file"].name, nrows=total_rows)
+        print(df.head(5))
+        article_descriptions = df["Description"].tolist()
+        strings=article_descriptions
+        model  = EMBEDDING_MODEL
+        embeddings = [get_embedding(string, engine=model) for string in strings]
+        print(type(embeddings))
+        print("LLEGOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO ")
+        question = print_recommendations_from_strings(
+            strings=article_descriptions,  # let's base similarity off of the article description
+            index_of_source_string=0,  # let's look at articles similar to the first one about Tony Blair
+            k_nearest_neighbors=2,  # let's look at the 5 most similar articles
+            embeddings=embeddings
+        )
+        # time.sleep(10)
+        question_2 = print_recommendations_from_strings(
+            strings=article_descriptions,  # let's base similarity off of the article description
+            index_of_source_string=2,  # let's look at articles similar to the first one about Tony Blair
+            k_nearest_neighbors=2,  # let's look at the 5 most similar articles
+            embeddings=embeddings
+        )
+        # time.sleep(10)
+        question_3 = print_recommendations_from_strings(
+            strings=article_descriptions,  # let's base similarity off of the article description
+            index_of_source_string=3,  # let's look at articles similar to the first one about Tony Blair
+            k_nearest_neighbors=2,  # let's look at the 5 most similar articles
+            embeddings=embeddings
+        )
+
+        print("******************* ", question)
+        print("******************* ", question_2)
+        print("******************* ", question_3)
+        main_question = "When it comes to starting the new year strong and getting a jump on your 2019 goals, what's your single biggest challenge right now? \n"+question+question_2+question_3+" \n give me a conclusion about the last aswers"
+        time.sleep(10)
+        completion = openai.Completion.create(engine="text-davinci-003", prompt= main_question,  max_tokens=150, temperature=0)
+        print("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+        print("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+        print(main_question)
+        print("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+        print("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+        print(completion)
+        print("/*/*/*/*/*/*/*/*/*/*/**/*/*/*/*/*/**/**/*/*/*/*/")
+        print(completion.choices[0].text)
+        print(question)
+        return JsonResponse(completion)
