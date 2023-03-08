@@ -230,7 +230,7 @@ class UserViewSet(viewsets.ModelViewSet):
     
     @action(methods=['POST'], detail=False, url_path='create-bucket', url_name='create_bucket')
     def create_bucket(self, request, pk=None):
-        
+        openai.api_key = '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'
 
         print(request.data["query"])
         print(request.data["file"].name)
