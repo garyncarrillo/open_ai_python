@@ -121,15 +121,15 @@ def print_recommendations_from_strings(
     distances = distances_from_embeddings(query_embedding, embeddings, distance_metric="cosine")
     # get indices of nearest neighbors (function from embeddings_utils.py)
     indices_of_nearest_neighbors = indices_of_nearest_neighbors_from_distances(distances)
-    print("++++++++++++++++++")
-    print(indices_of_nearest_neighbors)
-    print("++++++++++++++++++")
+    # print("++++++++++++++++++")
+    # print(indices_of_nearest_neighbors)
+    # print("++++++++++++++++++")
     # print out source string
     query_string = strings[index_of_source_string]
-    print("************************")
-    print(query_string)
-    print("gggggggggggggggggggggggggggggggggggg")
-    print(f"Source string: {query_string}")
+    # print("************************")
+    # print(query_string)
+    # print("gggggggggggggggggggggggggggggggggggg")
+    # print(f"Source string: {query_string}")
     print("---------------------------")
     # print out its k nearest neighbors
     k_counter = 0
@@ -144,12 +144,12 @@ def print_recommendations_from_strings(
         k_counter += 1
 
         # print out the similar strings and their distances
-        print(
-            f"""
-        --- Recommendation #{k_counter} (nearest neighbor {k_counter} of {k_nearest_neighbors}) ---
-        String: {strings[i]}
-        Distance: {distances[i]:0.3f}"""
-        )
+        # print(
+        #     f"""
+        # --- Recommendation #{k_counter} (nearest neighbor {k_counter} of {k_nearest_neighbors}) ---
+        # String: {strings[i]}
+        # Distance: {distances[i]:0.3f}"""
+        # )
         space = " "
         if k_counter > 1:
            space = ", " 
@@ -162,6 +162,7 @@ def print_recommendations_from_strings(
 def number_of_rows(df, percent=100):
     rows_count = df[df.columns[0]].count()
     total_rows = rows_count * (percent/100)
+    #320
     part_decimal, part_integer = math.modf(total_rows)
     return part_integer
 
@@ -225,23 +226,31 @@ def open_recomendation_bucket(request):
     print(question)
     return JsonResponse({"engines": "engines"})
 
-
+def get_summary(question):
+    # testeado con 10
+    time.sleep(10)
+    query = "give me a short summary with maximum length 70 characters of the following text: "+question
+    completion = openai.Completion.create(engine="text-davinci-003", prompt= query,  max_tokens=150, temperature=0)
+    return completion.choices[0].text
 class UserViewSet(viewsets.ModelViewSet):
     
     @action(methods=['POST'], detail=False, url_path='create-bucket', url_name='create_bucket')
     def create_bucket(self, request, pk=None):
-        openai.api_key = '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'
+        # openai.api_key = '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'
+        
 
         print(request.data["query"])
         print(request.data["file"].name)
-
-        df2 = pd.read_csv(request.data["file"].name)
-        total_rows = number_of_rows(df2, 100)    
+        
+        url = str(os.getcwd())
+        df2 = pd.read_csv(request.data["file"].name, encoding='latin1')
+        percent = int(request.data["percent"])
+        total_rows = number_of_rows(df2, percent)    
         print(df2.head(5))
 
         print(total_rows)
 
-        df = pd.read_csv(request.data["file"].name, nrows=total_rows)
+        df = pd.read_csv(request.data["file"].name, encoding='latin1')
         print(df.head(5))
         article_descriptions = df["Description"].tolist()
         strings=article_descriptions
@@ -249,31 +258,63 @@ class UserViewSet(viewsets.ModelViewSet):
         embeddings = [get_embedding(string, engine=model) for string in strings]
         print(type(embeddings))
         print("LLEGOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO ")
-        question = print_recommendations_from_strings(
-            strings=article_descriptions,  # let's base similarity off of the article description
-            index_of_source_string=0,  # let's look at articles similar to the first one about Tony Blair
-            k_nearest_neighbors=2,  # let's look at the 5 most similar articles
-            embeddings=embeddings
-        )
-        # time.sleep(10)
-        question_2 = print_recommendations_from_strings(
-            strings=article_descriptions,  # let's base similarity off of the article description
-            index_of_source_string=2,  # let's look at articles similar to the first one about Tony Blair
-            k_nearest_neighbors=2,  # let's look at the 5 most similar articles
-            embeddings=embeddings
-        )
-        # time.sleep(10)
-        question_3 = print_recommendations_from_strings(
-            strings=article_descriptions,  # let's base similarity off of the article description
-            index_of_source_string=3,  # let's look at articles similar to the first one about Tony Blair
-            k_nearest_neighbors=2,  # let's look at the 5 most similar articles
-            embeddings=embeddings
-        )
+        # question = print_recommendations_from_strings(
+        #     strings=article_descriptions,  # let's base similarity off of the article description
+        #     index_of_source_string=0,  # let's look at articles similar to the first one about Tony Blair
+        #     k_nearest_neighbors=2,  # let's look at the 5 most similar articles
+        #     embeddings=embeddings
+        # )
+        # # time.sleep(10)
+        
+        # question_2 = print_recommendations_from_strings(
+        #     strings=article_descriptions,  # let's base similarity off of the article description
+        #     index_of_source_string=1,  # let's look at articles similar to the first one about Tony Blair
+        #     k_nearest_neighbors=2,  # let's look at the 5 most similar articles
+        #     embeddings=embeddings
+        # )
+        # # time.sleep(10)
+        # question_3 = ""
+        # question_3 = print_recommendations_from_strings(
+        #     strings=article_descriptions,  # let's base similarity off of the article description
+        #     index_of_source_string=2,  # let's look at articles similar to the first one about Tony Blair
+        #     k_nearest_neighbors=2,  # let's look at the 5 most similar articles
+        #     embeddings=embeddings
+        # )
 
-        print("******************* ", question)
-        print("******************* ", question_2)
-        print("******************* ", question_3)
-        main_question = "When it comes to starting the new year strong and getting a jump on your 2019 goals, what's your single biggest challenge right now? \n"+question+question_2+question_3+" \n give me a conclusion about the last aswers"
+        i = 0
+        print(" ->>>>>")
+        print(total_rows)
+        rows = int(total_rows)
+        summaries = ""
+
+        for i in range(0, 27):
+            print("position ******************* ")
+            print(i)
+            question = print_recommendations_from_strings(
+                strings=article_descriptions,  # let's base similarity off of the article description
+                index_of_source_string= i,  # let's look at articles similar to the first one about Tony Blair
+                k_nearest_neighbors=2,  # let's look at the 5 most similar articles
+                embeddings=embeddings
+            )
+            # print("******************* ", question)
+        
+            n_question = question.split("\n")
+
+            for q in n_question:
+                summary = get_summary(q)
+                print (summary)
+                print ("*********")
+                if i == 0:
+                    summaries = summaries + "answer: "+summary.replace("\n","")
+                else:
+                    summaries = summaries +"\nanswer: "+summary.replace("\n","")
+
+        # main_question = "When it comes to starting the new year strong and getting a jump on your 2019 goals, what's your single biggest challenge right now? \n"+question+question_2+question_3+" \n give me a conclusion about the last aswers"
+        # main_question = request.data["query"]+" \n"+question+question_2+question_3+" \n give me a conclusion about the last aswers"
+        print("/*/*/*/*/*/*/*/*//*//*///*/*/*/*/*//*//*/*")
+        print(summaries)
+        
+        main_question = request.data["query"]+"\n"+summaries+"\n\n"
         time.sleep(10)
         completion = openai.Completion.create(engine="text-davinci-003", prompt= main_question,  max_tokens=150, temperature=0)
         print("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
@@ -285,4 +326,70 @@ class UserViewSet(viewsets.ModelViewSet):
         print("/*/*/*/*/*/*/*/*/*/*/**/*/*/*/*/*/**/**/*/*/*/*/")
         print(completion.choices[0].text)
         print(question)
+        return JsonResponse(completion)
+    
+    @action(methods=['POST'], detail=False, url_path='create-training', url_name='create_bucket')
+    def create_training(self, request, pk=None):
+        
+        question_key_word = "give me the key words for the following topic: What has been your #1 single biggest challenge with you are dog? "
+        key_words_completion = openai.Completion.create(engine="text-davinci-003", prompt= question_key_word,  max_tokens=150, temperature=0)
+        key_words = key_words_completion.choices[0].text
+        print(question_key_word)
+        print("***************** KEY WORD ************************")
+        print(key_words)
+        df = pd.read_csv(request.data["file"].name, encoding='latin1')
+        descriptions = df["Description"].tolist()
+        summaries = list()
+        model  = EMBEDDING_MODEL
+        summaries.append(key_words)
+ 
+        n_characthers = 120
+
+        for description in descriptions:
+            print(description)
+            if len(description) > 0:
+                n_iteration = int(len(description) /n_characthers)
+                start_index = 0
+                end_index = n_characthers
+                for iteration in range(1, n_iteration):
+                    print(start_index)
+                    print(end_index)
+                    sub_description = description[start_index:end_index]
+                    print(sub_description)
+                    print("********************************")
+                    summaries.append(sub_description)
+                    start_index = end_index + 1
+                    end_index = end_index + n_characthers
+        
+        embeddings = [get_embedding(string, engine=model) for string in summaries]
+
+        more_summaries = ""
+        index = 0
+        print(summaries)
+        question = print_recommendations_from_strings(
+            strings=summaries,  # let's base similarity off of the article description
+            index_of_source_string= 0,  # let's look at articles similar to the first one about Tony Blair
+            k_nearest_neighbors=50,  # let's look at the 5 most similar articles
+            embeddings=embeddings
+        )
+        n_question = question.split("\n")
+        for q in n_question:
+            n = len(q)
+            if n > 0:
+                if index == 0:
+                    more_summaries = more_summaries + "answer: "+ q.replace("\n","")
+                    index = index + 1
+                else:
+                    more_summaries = more_summaries +"\nanswer: "+q.replace("\n","")
+                    index = index + 1
+
+
+        main_question = "Based on the following answers, give me a list with their respective percentage of the top 5 challenges when I have a dog"+"\n"+more_summaries+"\n\n"
+        print("/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/")
+        print(main_question)
+        print("/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/")
+        print(more_summaries)
+        print("/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/")
+        time.sleep(10)
+        completion = openai.Completion.create(engine="text-davinci-003", prompt= main_question,  max_tokens=150, temperature=0)
         return JsonResponse(completion)
